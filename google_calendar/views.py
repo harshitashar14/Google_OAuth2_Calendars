@@ -1,8 +1,10 @@
+from django.shortcuts import redirect
 from rest_framework.views import APIView
 from django.http import JsonResponse
 import google_auth_oauthlib.flow
 import googleapiclient.discovery
 import os
+
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
@@ -14,23 +16,21 @@ CLIENT_SECRET_FILE = 'google_calendar/client_secret.json'
 
 class GoogleCalendarInitView(APIView):
 
-    def post(self, request):
+    def get(self, request):
         api_flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
             CLIENT_SECRET_FILE,
             scopes=SCOPES)
         api_flow.redirect_uri = REDIRECT_URI
 
         authorization_url, state = api_flow.authorization_url(
-            # Enable offline access so that you can refresh an access token without
-            # re-prompting the user for permission. Recommended for web server apps.
             access_type='offline',
-            # Enable incremental authorization. Recommended as a best practice.
             include_granted_scopes='true')
 
-        return JsonResponse({
-            "status": "succeeded",
-            "auth_url": authorization_url
-        })
+        return redirect(authorization_url)
+        # return JsonResponse({
+        #     "status": "succeeded",
+        #     "auth_url": authorization_url
+        # })
 
 
 class GoogleCalendarRedirectView(APIView):
